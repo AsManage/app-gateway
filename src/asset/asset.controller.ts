@@ -21,6 +21,7 @@ import {
   DeleteAssetReq,
   RetrieveAssetReq,
   UpdateAssetReq,
+  UpdateAssetSessionBody,
   UpdateSessionBody,
 } from './asset.dto';
 import { Paging } from 'src/user/user.dto';
@@ -75,10 +76,10 @@ export class AssetController {
       .send(buffer);
   }
 
-  @Get('audit-session')
-  getListAuditSession(@Req() req: Request, @Query() query: AuditSessionQuery) {
-    const { tenantId } = req['user'];
-    return this.assetService.getListAudiSession(tenantId, query);
+  @Get('audit-session') //TODO:
+  getListAuditSession(@Req() req: Request) {
+    const { tenantId, id } = req['user'];
+    return this.assetService.getListAudiSession(tenantId, id);
   }
 
   @Post('audit-session')
@@ -97,6 +98,18 @@ export class AssetController {
   ) {
     const { tenantId, id } = req['user'];
     return this.assetService.updateSessionAuditSession(tenantId, id, payload);
+  }
+
+  @Post('audit-session/:sessionId/asset/:assetAuditId')
+  updateAssetInSession(
+    @Param() params: any,
+    @Body() payload: UpdateAssetSessionBody,
+  ) {
+    return this.assetService.updateAssetAuditSession(
+      params?.sessionId,
+      params?.assetAuditId,
+      payload,
+    );
   }
 
   @Get('audit-session/:sessionId')

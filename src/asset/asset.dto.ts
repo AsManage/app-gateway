@@ -137,3 +137,8 @@ export interface UpdateSessionBody {
   sessionId: string;
   assets: string[];
 }
+
+export interface UpdateAssetSessionBody {
+  note: string;
+  status: string;
+}

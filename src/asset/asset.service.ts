@@ -19,6 +19,7 @@ import {
   Paging,
   RetrieveAssetReq,
   UpdateAssetReq,
+  UpdateAssetSessionBody,
   UpdateSessionBody,
 } from './asset.dto';
 import * as _ from 'lodash';
@@ -457,19 +458,28 @@ export class AssetService {
     return await workbook.xlsx.writeBuffer();
   }
 
-  async getListAudiSession(tenantId: number, params: AuditSessionQuery) {
-    const data = await lastValueFrom(
+  async getListAudiSession(tenantId: number, authId: number) {
+    const assigneeUser = await lastValueFrom(
+      await this.commonService.getOne(
+        AM_SERVICE.USER_SERVICE.SERVICE_NAME,
+        AM_SERVICE.USER_SERVICE.ENTITY.USER_INFO,
+        {
+          authId: authId,
+        },
+      ),
+    );
+    const listSession = await lastValueFrom(
       await this.commonService.getList(
         AM_SERVICE.ASSET_SERVICE.SERVICE_NAME,
         AM_SERVICE.ASSET_SERVICE.ENTITY.AUDIT_SESSION,
         {
-          tenantId,
-          ...(params.status ? { status: params.status } : {}),
+          assigneeId: Number((assigneeUser as any)?.id),
+          status: 'UPCOMING',
         },
       ),
     );
-    const createdUserIds = _.mapKeys(data as any, 'createdBy');
-    const assignUserIds = _.mapKeys(data as any, 'assigneeId');
+    const createdUserIds = _.mapKeys(listSession as any, 'createdBy');
+    const assignUserIds = _.mapKeys(listSession as any, 'assigneeId');
     const createdUserDetailList = _.mapKeys(
       await lastValueFrom(
         await this.commonService.getByIds(
@@ -485,10 +495,10 @@ export class AssetService {
 
     return handleResponse(
       true,
-      (data as any).map((ele) => ({
+      (listSession as any).map((ele) => ({
         ...ele,
         createdUser: createdUserDetailList[ele?.createdBy],
-        assginedUser: createdUserDetailList[ele?.assigneeId],
+        assignedUser: createdUserDetailList[ele?.assigneeId],
       })),
       '',
     );
@@ -643,7 +653,31 @@ export class AssetService {
       ),
     );
 
-
     return handleResponse(true, null, 'UPDATE AUDIT SESSION SUCCESS');
+  }
+
+  async updateAssetAuditSession(
+    sessionId: number,
+    assetAuditId: number,
+    payload: UpdateAssetSessionBody,
+  ) {
+    const data = await lastValueFrom(
+      await this.commonService.update(
+        AM_SERVICE.ASSET_SERVICE.SERVICE_NAME,
+        AM_SERVICE.ASSET_SERVICE.ENTITY.AUDIT_ASSET_MAPPING,
+        {
+          conditions: {
+            id: assetAuditId,
+            auditSessionId: sessionId,
+          },
+          data: {
+            note: payload.note,
+            status: payload.status,
+          },
+        },
+      ),
+    );
+
+    return handleResponse(true, null, 'UPDATE AUDIT ASSET SUCCESS');
   }
 }
