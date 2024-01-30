@@ -100,11 +100,12 @@ export class AssetController {
     return this.assetService.updateSessionAuditSession(tenantId, id, payload);
   }
 
-  @Post('audit-session/:sessionId/asset/:assetAuditId')
+  @Put('audit-session/:sessionId/asset/:assetAuditId')
   updateAssetInSession(
     @Param() params: any,
     @Body() payload: UpdateAssetSessionBody,
   ) {
+    console.log(params, payload)
     return this.assetService.updateAssetAuditSession(
       params?.sessionId,
       params?.assetAuditId,

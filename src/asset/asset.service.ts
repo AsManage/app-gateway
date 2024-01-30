@@ -474,7 +474,7 @@ export class AssetService {
         AM_SERVICE.ASSET_SERVICE.ENTITY.AUDIT_SESSION,
         {
           assigneeId: Number((assigneeUser as any)?.id),
-          status: 'UPCOMING',
+          status: messParser.In(['UPCOMING', 'AUDITING']),
         },
       ),
     );
@@ -667,17 +667,17 @@ export class AssetService {
         AM_SERVICE.ASSET_SERVICE.ENTITY.AUDIT_ASSET_MAPPING,
         {
           conditions: {
-            id: assetAuditId,
+            assetId: assetAuditId,
             auditSessionId: sessionId,
           },
           data: {
             note: payload.note,
-            status: payload.status,
+            status: 'AUDITED',
           },
         },
       ),
     );
 
-    return handleResponse(true, null, 'UPDATE AUDIT ASSET SUCCESS');
+    return handleResponse(true, data, 'UPDATE AUDIT ASSET SUCCESS');
   }
 }
